@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
 import {
   Box,
   CircularProgress,
@@ -10,18 +9,21 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import { listVms } from '../api/vms';
-import type { Vm } from '../api/vms';
+import { useVmInventory } from '../hooks/useVmInventory';
 
 export function VmListView() {
-  const { data, isLoading, isError, error } = useQuery<Vm[], Error>({
-    queryKey: ['vms'],
-    queryFn: listVms,
-  });
+  const { vms, isLoading, isError, error } = useVmInventory();
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+        }}
+      >
         <CircularProgress />
       </Box>
     );
@@ -29,21 +31,24 @@ export function VmListView() {
 
   if (isError) {
     return (
-      <Box sx={{ mt: 4 }}>
-        <Typography color="error">
-          Failed to load virtual machines: {error.message}
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h6" color="error" gutterBottom>
+          Error loading virtual machines
+        </Typography>
+        <Typography variant="body2">
+          {error?.message ?? 'Unknown error'}
         </Typography>
       </Box>
     );
   }
 
   return (
-    <Box>
-      <Typography variant="h5" gutterBottom>
+    <Box sx={{ p: 1 }}>
+      <Typography variant="h4" gutterBottom>
         Virtual Machines
       </Typography>
 
-      <Paper>
+      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -54,16 +59,7 @@ export function VmListView() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {data && data.length > 0 ? (
-              data.map((vm) => (
-                <TableRow key={vm.id}>
-                  <TableCell>{vm.name}</TableCell>
-                  <TableCell>{vm.status}</TableCell>
-                  <TableCell>{vm.clusterName}</TableCell>
-                  <TableCell>{vm.hostName}</TableCell>
-                </TableRow>
-              ))
-            ) : (
+            {vms.length === 0 && (
               <TableRow>
                 <TableCell colSpan={4}>
                   <Typography variant="body2">
@@ -72,6 +68,15 @@ export function VmListView() {
                 </TableCell>
               </TableRow>
             )}
+
+            {vms.map((vm) => (
+              <TableRow key={vm.id} hover>
+                <TableCell>{vm.name}</TableCell>
+                <TableCell>{vm.status ?? '-'}</TableCell>
+                <TableCell>{vm.clusterName ?? '-'}</TableCell>
+                <TableCell>{vm.hostName ?? '-'}</TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </Paper>
