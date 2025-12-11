@@ -59,12 +59,21 @@ function buildClusterTree(vms: Vm[]): ClusterGroup[] {
     hostVms.push(vm);
   }
 
+  const inactiveLabel = 'Inactive VMs';
+
   return Array.from(clusterMap.entries())
     .sort(([aName], [bName]) => aName.localeCompare(bName))
     .map<ClusterGroup>(([clusterName, hostsMap]) => ({
       name: clusterName,
       hosts: Array.from(hostsMap.entries())
-        .sort(([aName], [bName]) => aName.localeCompare(bName))
+        .sort(([aName], [bName]) => {
+          const aIsInactive = aName === inactiveLabel;
+          const bIsInactive = bName === inactiveLabel;
+
+          if (aIsInactive && !bIsInactive) return 1;   // Inactive goes last
+          if (!aIsInactive && bIsInactive) return -1;  // Normal hosts before
+          return aName.localeCompare(bName);
+        })
         .map<HostGroup>(([hostName, vmsForHost]) => ({
           name: hostName,
           vms: vmsForHost.slice().sort((a, b) => a.name.localeCompare(b.name)),
