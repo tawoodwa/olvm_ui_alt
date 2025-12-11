@@ -3,7 +3,11 @@ import { useMemo, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import {
   AppBar,
+  Avatar,
   Box,
+  Button,
+  CircularProgress,
+  Collapse,
   CssBaseline,
   Divider,
   Drawer,
@@ -12,14 +16,13 @@ import {
   ListItemText,
   Toolbar,
   Typography,
-  Collapse,
-  CircularProgress,
 } from '@mui/material';
 import DnsIcon from '@mui/icons-material/Dns';
 import ComputerIcon from '@mui/icons-material/Computer';
 import DesktopWindowsIcon from '@mui/icons-material/DesktopWindows';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { VmListView } from './views/VmListView';
 import { useVmInventory } from './hooks/useVmInventory';
 import type { Vm } from './api/vms';
@@ -70,8 +73,8 @@ function buildClusterTree(vms: Vm[]): ClusterGroup[] {
           const aIsInactive = aName === inactiveLabel;
           const bIsInactive = bName === inactiveLabel;
 
-          if (aIsInactive && !bIsInactive) return 1;   // Inactive goes last
-          if (!aIsInactive && bIsInactive) return -1;  // Normal hosts before
+          if (aIsInactive && !bIsInactive) return 1; // Inactive goes last
+          if (!aIsInactive && bIsInactive) return -1;
           return aName.localeCompare(bName);
         })
         .map<HostGroup>(([hostName, vmsForHost]) => ({
@@ -103,6 +106,14 @@ export default function App() {
     }));
   };
 
+  const configuredUser =
+    import.meta.env.VITE_OVIRT_USER || 'admin@ovirt';
+
+  const userInitial =
+    configuredUser && configuredUser.length > 0
+      ? configuredUser.charAt(0).toUpperCase()
+      : '?';
+
   return (
     <>
       <CssBaseline />
@@ -113,12 +124,65 @@ export default function App() {
         }}
       >
         <Toolbar>
+          {/* Left side: product + datacenter */}
           <Typography variant="h6" noWrap sx={{ mr: 4 }}>
             OLVM Manager
           </Typography>
           <Typography variant="body2" sx={{ opacity: 0.8 }}>
             Datacenter: <strong>home.lab</strong>
           </Typography>
+
+          {/* Spacer */}
+          <Box sx={{ flexGrow: 1 }} />
+
+          {/* Create VM button – placeholder for now */}
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<AddCircleOutlineIcon />}
+            sx={{
+              textTransform: 'none',
+              mr: 2,
+            }}
+            onClick={() => {
+              // Later: navigate to Create VM flow or open dialog
+              // For now this is a visual placeholder.
+            }}
+          >
+            Create VM
+          </Button>
+
+          {/* Current user pill */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              px: 1.5,
+              py: 0.5,
+              borderRadius: 999,
+              bgcolor: 'rgba(255, 255, 255, 0.1)',
+            }}
+          >
+            <Avatar
+              sx={{
+                width: 24,
+                height: 24,
+                mr: 1,
+                fontSize: 14,
+                bgcolor: 'rgba(255, 255, 255, 0.2)',
+              }}
+            >
+              {userInitial}
+            </Avatar>
+            <Typography
+              variant="body2"
+              noWrap
+              sx={{ maxWidth: 180 }}
+              title={configuredUser}
+            >
+              {configuredUser}
+            </Typography>
+          </Box>
         </Toolbar>
       </AppBar>
 
