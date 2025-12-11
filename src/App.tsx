@@ -5,10 +5,9 @@ import {
   Avatar,
   Box,
   Button,
-  Chip,
+  CircularProgress,
   Collapse,
   CssBaseline,
-  CircularProgress,
   Divider,
   Drawer,
   List,
@@ -18,7 +17,7 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DnsIcon from '@mui/icons-material/Dns';
 import ComputerIcon from '@mui/icons-material/Computer';
 import DesktopWindowsIcon from '@mui/icons-material/DesktopWindows';
@@ -72,7 +71,7 @@ function buildClusterTree(vms: Vm[]): ClusterGroup[] {
     .map(([clusterName, hostsMap]) => ({
       name: clusterName,
       hosts: Array.from(hostsMap.entries())
-        .sort(([aName], [bName]) => {
+        .sort(([aName, bName]) => {
           const aInactive = aName === INACTIVE_LABEL;
           const bInactive = bName === INACTIVE_LABEL;
           if (aInactive && !bInactive) return 1; // inactive last
@@ -91,7 +90,7 @@ export default function App() {
 
   const [expandedClusters, setExpandedClusters] = useState<Record<string, boolean>>({});
   const [expandedHosts, setExpandedHosts] = useState<Record<string, boolean>>({});
-  const [mainView, setMainView] = useState<MainView>('vms'); // keep current behavior as default
+  const [mainView, setMainView] = useState<MainView>('vms');
 
   const clusterTree = useMemo(() => buildClusterTree(vms), [vms]);
 
@@ -123,49 +122,88 @@ export default function App() {
     return hostNames.size;
   }, [clusterTree]);
 
+  const configuredUser =
+    import.meta.env.VITE_OVIRT_USER || 'admin@ovirt';
+
+  const userInitial =
+    configuredUser && configuredUser.length > 0
+      ? configuredUser.charAt(0).toUpperCase()
+      : '?';
+
   return (
     <>
       <CssBaseline />
+
+      {/* Top bar */}
+      <AppBar
+        position="fixed"
+        sx={{
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+        }}
+      >
+        <Toolbar>
+          {/* Left side: product + datacenter */}
+          <Typography variant="h6" noWrap sx={{ mr: 4 }}>
+            OLVM Manager
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.8 }}>
+            Datacenter: <strong>home.lab</strong>
+          </Typography>
+
+          {/* Spacer */}
+          <Box sx={{ flexGrow: 1 }} />
+
+          {/* Create VM button (original styling) */}
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<AddCircleOutlineIcon />}
+            sx={{
+              textTransform: 'none',
+              mr: 2,
+            }}
+            onClick={() => {
+              // placeholder for future Create VM flow
+            }}
+          >
+            Create VM
+          </Button>
+
+          {/* Current user pill (original styling) */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              px: 1.5,
+              py: 0.5,
+              borderRadius: 999,
+              bgcolor: 'rgba(255, 255, 255, 0.1)',
+            }}
+          >
+            <Avatar
+              sx={{
+                width: 24,
+                height: 24,
+                mr: 1,
+                fontSize: 14,
+                bgcolor: 'rgba(255, 255, 255, 0.2)',
+              }}
+            >
+              {userInitial}
+            </Avatar>
+            <Typography
+              variant="body2"
+              noWrap
+              sx={{ maxWidth: 220 }}
+              title={configuredUser}
+            >
+              {configuredUser}
+            </Typography>
+          </Box>
+        </Toolbar>
+      </AppBar>
+
       <Box sx={{ display: 'flex', height: '100vh' }}>
-        {/* Top bar */}
-        <AppBar
-          position="fixed"
-          sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        >
-          <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
-              <Typography variant="h6" noWrap>
-                OLVM Manager
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Datacenter: <strong>home.lab</strong>
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Button
-                variant="contained"
-                color="secondary"
-                size="small"
-                startIcon={<AddIcon />}
-              >
-                Create VM
-              </Button>
-
-              <Chip
-                size="small"
-                variant="outlined"
-                avatar={
-                  <Avatar sx={{ width: 24, height: 24 }}>
-                    A
-                  </Avatar>
-                }
-                label="admin@ovirt@internalSSO"
-              />
-            </Box>
-          </Toolbar>
-        </AppBar>
-
         {/* Left navigation drawer */}
         <Drawer
           variant="permanent"
