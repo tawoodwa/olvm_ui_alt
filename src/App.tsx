@@ -1,3 +1,4 @@
+// src/App.tsx
 import { useMemo, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import {
@@ -40,7 +41,8 @@ function buildClusterTree(vms: Vm[]): ClusterGroup[] {
 
   for (const vm of vms) {
     const clusterName = vm.clusterName || 'Unassigned cluster';
-    const hostName = vm.hostName || 'Unassigned host';
+    // Default host bucket for VMs without a host assignment:
+    const hostName = vm.hostName || 'Inactive VMs';
 
     let hostsMap = clusterMap.get(clusterName);
     if (!hostsMap) {
